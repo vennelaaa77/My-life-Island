@@ -1,0 +1,411 @@
+{
+ "c-20261019-iit-guwahati": {
+  "note": "70 Learning/Courses/IIT Guwahati Course/IIT Guwahati Course.md",
+  "title": "IIT Guwahati Course (NLP)",
+  "type": "course"
+ },
+ "c-20261019-lvmh": {
+  "note": "70 Learning/Courses/LVMH Certificate Course.md",
+  "title": "LVMH Certificate Course",
+  "type": "course"
+ },
+ "g-20261019-delf": {
+  "note": "50 Goals/DELF.md",
+  "title": "DELF",
+  "type": "goal"
+ },
+ "g-20261019-gmat": {
+  "note": "50 Goals/GMAT.md",
+  "title": "GMAT",
+  "type": "goal"
+ },
+ "g-20261019-ielts": {
+  "note": "50 Goals/IELTS.md",
+  "title": "IELTS",
+  "type": "goal"
+ },
+ "g-20261019-language-learning": {
+  "note": "50 Goals/Language Learning.md",
+  "title": "Language Learning",
+  "type": "goal"
+ },
+ "g-20261019-make-my-own-clothes": {
+  "note": "50 Goals/Make My Own Clothes.md",
+  "title": "Make My Own Clothes",
+  "type": "goal"
+ },
+ "g-20261019-martial-arts": {
+  "note": "50 Goals/Martial Arts.md",
+  "title": "Martial Arts",
+  "type": "goal"
+ },
+ "g-20261019-piano-music-theory": {
+  "note": "50 Goals/Piano & Music Theory.md",
+  "title": "Piano & Music Theory",
+  "type": "goal"
+ },
+ "g-20261019-youtube-video-editing": {
+  "note": "50 Goals/YouTube Video Editing.md",
+  "title": "YouTube Video Editing",
+  "type": "goal"
+ },
+ "p-20261019-advait": {
+  "group": "network",
+  "name": "Advait",
+  "note": "40 People/Networking/Advait.md",
+  "type": "person",
+  "where": "Nexora convener"
+ },
+ "p-20261019-annanya": {
+  "group": "family",
+  "name": "Annanya",
+  "note": "40 People/Family & Friends/Annanya.md",
+  "type": "person",
+  "where": "Friend: shows after midsems"
+ },
+ "p-20261019-anne-michaut": {
+  "group": "network",
+  "name": "Anne Michaut",
+  "note": "40 People/Networking/Anne Michaut.md",
+  "type": "person",
+  "where": "Associate Dean, HEC Paris"
+ },
+ "p-20261019-apoorv-vashistha": {
+  "group": "network",
+  "name": "Apoorv Vashistha",
+  "note": "40 People/Networking/Apoorv Vashistha.md",
+  "type": "person",
+  "where": "Master's Union"
+ },
+ "p-20261019-ceren-koca": {
+  "group": "network",
+  "name": "Ceren Koca",
+  "note": "40 People/Networking/Ceren Koca.md",
+  "type": "person",
+  "where": "Founder & CEO, HumanTruths"
+ },
+ "p-20261019-dwayne-ferguson": {
+  "group": "network",
+  "name": "Dwayne Ferguson",
+  "note": "40 People/Networking/Dwayne Ferguson.md",
+  "type": "person",
+  "where": "AI strategy & design consultant"
+ },
+ "p-20261019-emanuela-prandelli": {
+  "group": "network",
+  "name": "Emanuela Prandelli",
+  "note": "40 People/Networking/Emanuela Prandelli.md",
+  "type": "person",
+  "where": "LVMH Assoc. Prof, Bocconi"
+ },
+ "p-20261019-falak": {
+  "group": "family",
+  "name": "Falak",
+  "note": "40 People/Family & Friends/Falak.md",
+  "type": "person",
+  "where": "Friend: Zudio trip"
+ },
+ "p-20261019-harsh-sharma": {
+  "group": "network",
+  "name": "Harsh Sharma",
+  "note": "40 People/Networking/Harsh Sharma.md",
+  "type": "person",
+  "where": "Case comp mentor, BITS/IIM Indore"
+ },
+ "p-20261019-irina-ghosh": {
+  "group": "network",
+  "name": "Irina Ghosh",
+  "note": "40 People/Networking/Irina Ghosh.md",
+  "type": "person",
+  "where": "Career guidance app"
+ },
+ "p-20261019-ishit-gupta": {
+  "group": "network",
+  "name": "Ishit Gupta",
+  "note": "40 People/Networking/Ishit Gupta.md",
+  "type": "person",
+  "where": "Master's Union"
+ },
+ "p-20261019-jade-network": {
+  "group": "network",
+  "name": "Jade",
+  "note": "40 People/Networking/Jade.md",
+  "type": "person",
+  "where": "Networking"
+ },
+ "p-20261019-kaushal-dhanuka": {
+  "group": "network",
+  "name": "Kaushal Dhanuka",
+  "note": "40 People/Networking/Kaushal Dhanuka.md",
+  "type": "person",
+  "where": "Brandstorm India winner, MDI"
+ },
+ "p-20261019-mayank": {
+  "group": "network",
+  "name": "Mayank",
+  "note": "40 People/Networking/Mayank.md",
+  "type": "person",
+  "where": "Master's Union"
+ },
+ "p-20261019-miti-shah": {
+  "group": "network",
+  "name": "Miti Shah",
+  "note": "40 People/Networking/Miti Shah.md",
+  "type": "person",
+  "where": "Creator, 300K+ community"
+ },
+ "p-20261019-parthesh-sir": {
+  "group": "network",
+  "name": "Parthesh Sir",
+  "note": "40 People/Networking/Parthesh Sir.md",
+  "type": "person",
+  "where": "College: Kinder Joy + Wonderla"
+ },
+ "p-20261019-ravleen-kaur": {
+  "group": "network",
+  "name": "Ravleen Kaur",
+  "note": "40 People/Networking/Ravleen Kaur.md",
+  "type": "person",
+  "where": "DU, Flipkart & Savana marketing intern"
+ },
+ "p-20261019-sahil": {
+  "group": "network",
+  "name": "Sahil",
+  "note": "40 People/Networking/Sahil.md",
+  "type": "person",
+  "where": "Master's Union"
+ },
+ "p-20261019-tiwari": {
+  "group": "family",
+  "name": "Tiwari",
+  "note": "40 People/Family & Friends/Tiwari.md",
+  "type": "person",
+  "where": "Friend: tickets"
+ },
+ "pr-20261019-life-management-game": {
+  "note": "60 Projects/Life Management Game.md",
+  "title": "Life Management Game",
+  "type": "project"
+ },
+ "pr-20261019-lock-in-system": {
+  "note": "60 Projects/Lock-In System.md",
+  "title": "Lock-In System",
+  "type": "project"
+ },
+ "pr-20261019-portfolio": {
+  "note": "20 Career/Portfolio/Portfolio.md",
+  "title": "Portfolio",
+  "type": "project"
+ },
+ "q-20261019-advait-unstop": {
+  "building": "nexora",
+  "due": "2026-10-20",
+  "note": "30 Clubs/Nexora/Ideas for Nexora.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Share the Unstop competition with Advait",
+  "type": "quest"
+ },
+ "q-20261019-apply": {
+  "building": "internship",
+  "due": "2026-10-25",
+  "note": "20 Career/Internships/Internships.md",
+  "repeat": "once",
+  "size": "big",
+  "title": "Apply for internships",
+  "type": "quest"
+ },
+ "q-20261019-brandstorm": {
+  "building": "casecomp",
+  "due": "2026-10-23",
+  "note": "20 Career/Case Competitions/L'Or\u00e9al Brandstorm.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Register for L'Or\u00e9al Brandstorm 2027",
+  "type": "quest"
+ },
+ "q-20261019-desk": {
+  "building": "declutter",
+  "due": "2026-10-31",
+  "note": "80 Declutter/Declutter.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Clean, neat desk setup",
+  "type": "quest"
+ },
+ "q-20261019-icc-submission-1": {
+  "building": "icc",
+  "note": "30 Clubs/ICC/ICC.md",
+  "repeat": "once",
+  "size": "big",
+  "title": "ICC: submission 1",
+  "type": "quest"
+ },
+ "q-20261019-insta-saved": {
+  "building": "declutter",
+  "due": "2026-10-31",
+  "note": "80 Declutter/Declutter.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Sort Instagram saved posts",
+  "type": "quest"
+ },
+ "q-20261019-irina": {
+  "building": "network",
+  "due": "2026-10-25",
+  "note": "40 People/Networking/Irina Ghosh.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Reach out to Irina Ghosh",
+  "type": "quest"
+ },
+ "q-20261019-it-club": {
+  "building": "today",
+  "due": "2026-10-23",
+  "note": "10 Today/Today.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Complete IT club work",
+  "type": "quest"
+ },
+ "q-20261019-linkedin-post": {
+  "building": "today",
+  "due": "2026-10-20",
+  "note": "10 Today/Today.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Finish and post my LinkedIn post",
+  "type": "quest"
+ },
+ "q-20261019-linkedin-revamp": {
+  "building": "portfolio",
+  "due": "2026-10-25",
+  "note": "10 Today/Today.md",
+  "repeat": "once",
+  "size": "big",
+  "title": "Revamp LinkedIn profile",
+  "type": "quest"
+ },
+ "q-20261019-mktg-outreach": {
+  "building": "mktg",
+  "note": "30 Clubs/Marketing Club/Marketing Club.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Marketing Club: outreach",
+  "type": "quest"
+ },
+ "q-20261019-parthesh": {
+  "building": "portfolio",
+  "due": "2026-10-19",
+  "note": "40 People/Networking/Parthesh Sir.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Meeting with Parthesh Sir: Kinder Joy + Wonderla",
+  "type": "quest"
+ },
+ "q-20261019-salon": {
+  "building": "salon",
+  "days": [
+   0
+  ],
+  "note": "85 Salon/Salon.md",
+  "repeat": "weekly",
+  "size": "small",
+  "title": "Sunday Salon: multani mitti + self-care",
+  "type": "quest"
+ },
+ "q-20261019-send-audio": {
+  "building": "today",
+  "due": "2026-10-21",
+  "note": "10 Today/Today.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Send the audio",
+  "type": "quest"
+ },
+ "q-20261019-shopping": {
+  "building": "today",
+  "due": "2026-10-31",
+  "note": "10 Today/To Buy.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Buy only what's on my To Buy list",
+  "type": "quest"
+ },
+ "q-20261019-tata-idea": {
+  "building": "casecomp",
+  "due": "2026-10-25",
+  "note": "20 Career/Case Competitions/Tata Imagination Challenge.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Write down my Tata Imagination idea",
+  "type": "quest"
+ },
+ "q-20261019-tedx": {
+  "building": "network",
+  "due": "2026-10-23",
+  "note": "40 People/Networking/TEDxIIM Bangalore.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Message TEDxIIM Bangalore organisers",
+  "type": "quest"
+ },
+ "q-20261019-text-jade": {
+  "building": "family",
+  "due": "2026-10-20",
+  "note": "40 People/Family & Friends/Jade.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Text Jade",
+  "type": "quest"
+ },
+ "q-20261019-tiwari-tickets": {
+  "building": "family",
+  "due": "2026-10-25",
+  "note": "40 People/Family & Friends/Tiwari.md",
+  "repeat": "once",
+  "size": "small",
+  "title": "Get tickets for me and Tiwari",
+  "type": "quest"
+ },
+ "q-20261019-vov-pitch": {
+  "building": "internship",
+  "due": "2026-10-19",
+  "note": "20 Career/Internships/Veil of Veda.md",
+  "repeat": "once",
+  "size": "big",
+  "title": "Veil of Veda pitch before the 8:00 meeting",
+  "type": "quest"
+ },
+ "q-20261019-vov-update": {
+  "building": "internship",
+  "days": [
+   5
+  ],
+  "note": "20 Career/Internships/Veil of Veda.md",
+  "repeat": "weekly",
+  "size": "small",
+  "title": "Veil of Veda weekly update email",
+  "type": "quest"
+ },
+ "q-20261019-wild-wed": {
+  "building": "network",
+  "days": [
+   3
+  ],
+  "note": "40 People/Networking/Wild Wednesdays.md",
+  "repeat": "weekly",
+  "size": "medium",
+  "title": "Wild Wednesdays outreach (3\u20135 messages)",
+  "type": "quest"
+ },
+ "q-20261019-zudio-falak": {
+  "building": "family",
+  "due": "2026-10-25",
+  "note": "40 People/Family & Friends/Falak.md",
+  "repeat": "once",
+  "size": "medium",
+  "title": "Zudio trip with Falak",
+  "type": "quest"
+ }
+}
