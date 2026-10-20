@@ -86,6 +86,7 @@ function itemsFor(place){
       const key=r.id+"|once", d=S.done[key];
       if(d && keyOf(new Date(d.at))!==t) continue;
       out.push({r,key,due:r.due||null,done:!!d,seen:!!S.seen[key],overdue:!d&&!!r.due&&r.due<t});
+    } else if(r.repeat==="monthly"){ if(r.archived||t<r.start) continue; const key=r.id+"|"+t.slice(0,7), d=S.done[key]; if(d && keyOf(new Date(d.at))!==t) continue; out.push({r,key,due:null,done:!!d,seen:!!S.seen[key],overdue:false});
     } else if(occursOn(r,t)){ const key=r.id+"|"+t; out.push({r,key,due:t,done:!!S.done[key],seen:!!S.seen[key],overdue:false}); }
   }
   return place==="today" ? out.filter(i=>i.r.place==="today"||["overdue","today","done"].includes(bucketOf(i))) : out;
@@ -95,6 +96,7 @@ function bucketOf(i){ const t=today(); if(i.done) return "done"; if(i.overdue) r
 const BUCKETS=[["overdue","Overdue: do these first"],["today","Due today"],["week","This week"],["later","Later"],["anytime","Anytime (no deadline)"],["done","Done today (gone tomorrow)"]];
 function dueText(i){
   if(i.r.repeat==="daily") return "Every day";
+  if(i.r.repeat==="monthly") return "Once a month";
   if(i.r.repeat==="weekly") return "Every "+(i.r.days||[]).map(d=>DOW[d]).join(", ");
   if(!i.due) return "Anytime";
   const d=daysBetween(today(),i.due), nice=new Date(i.due+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
@@ -139,6 +141,25 @@ const INBOX=[
 ];
 INBOX.forEach(q=>{ if(!S.rules.some(r=>r.id===q.id)) S.rules.push({...q}); }); save();
 // one quest = one card: archive duplicate titles, hide quests Claude made up, route Veil of Veda to its own room
+const ROUTINE_RULES=[
+ {id:"rr-nexora-mail",title:"Update mail",place:"nexora",tier:"small",repeat:"daily",note:"30 Clubs/Nexora/Nexora.md"},
+ {id:"rr-nexora-assign",title:"Assign work",place:"nexora",tier:"small",repeat:"weekly",days:[0],note:"30 Clubs/Nexora/Nexora.md"},
+ {id:"rr-call-parents",title:"Call Mom and Dad",place:"family",tier:"small",repeat:"weekly",days:[6],note:"12 Routines/Weekly and Monthly Rhythm.md"},
+ {id:"rr-call-kritika",title:"Call Kritika",place:"family",tier:"small",repeat:"monthly",note:"12 Routines/Weekly and Monthly Rhythm.md"},
+ {id:"rr-vov-saturday",title:"Veil of Veda office: 1 to 5 pm",place:"vov",tier:"medium",repeat:"weekly",days:[6],note:"20 Career/Internships/Veil of Veda.md"},
+ {id:"rr-vov-reels",title:"VOV: build 3 aesthetic reels",place:"vov",tier:"big",repeat:"once",due:"2026-10-24",note:"20 Career/Internships/Veil of Veda.md",steps:[{t:"Reel 1",done:false},{t:"Reel 2",done:false},{t:"Reel 3",done:false}]}];
+ROUTINE_RULES.forEach(q=>{ if(!S.rules.some(r=>r.id===q.id)) S.rules.push({...q,start:today()}); });
+const DREAMS=["Mars","dyou","Seore","Moxie","Boba Bhai","Turbo AI","Mila Mend","ElevenLabs","Plum","un:fltrd","indē wild","Fix My Curls","Rella","Alchemai","Nami Matcha","Gnani.ai","Sarvam AI","Savana","Fraganote","The Whole Truth Foods","Kinder Joy","Sleepy Owl","New York tech companies"];
+function tidyOnce(){ if(S.v4) return; S.v4=true;
+  S.rules.forEach(r=>{ if(r.repeat==="daily"&&!r.auto&&!String(r.id).startsWith("rr-")) r.archived=true;
+    if(/^full-body moisturising$/i.test(r.title||"")||/^sunday salon: multani mitti/i.test(r.title||"")||/^clean, neat desk setup$/i.test(r.title||"")) r.archived=true;
+    if(/^multani mitti/i.test(r.title||"")) r.title="Multani mitti";
+    if(/cult brand/i.test(r.title||"")&&!r.due) r.due="2026-10-24"; });
+  S.internships=S.internships||[]; DREAMS.forEach(n=>{ if(!S.internships.some(x=>x.name.toLowerCase()===n.toLowerCase())) S.internships.push({id:Math.random().toString(36).slice(2,9),name:n,status:0}); });
+  const dd=(arr,key)=>{ const seen={}; return (arr||[]).filter(x=>{ const k=String(x[key]||"").toLowerCase().trim(); if(!k||seen[k]) return !k; seen[k]=1; return true; }); };
+  S.goals=dd(S.goals,"title"); S.projects=dd(S.projects,"title"); S.courses=dd(S.courses,"title"); S.people=dd(S.people,"name"); S.internships=dd(S.internships,"name");
+  save(); }
+tidyOnce();
 function tidyRules(){ const seen={}; let c=false;
   for(const r of S.rules){ if(r.id==="ix-q-20261020-lifeisle-names"&&!r.archived){ r.archived=true; c=true; }
     if(r.place==="internship"&&/veil of veda|vov/i.test((r.title||"")+" "+(r.note||""))){ r.place="vov"; c=true; }
@@ -321,8 +342,10 @@ const BOARDS={
   casecomp:()=>roomBoard("casecomp",`<div class="section-label"><span>Your notes</span><i></i></div><div class="card"><div class="grow"><div class="t">Case comp playbook</div><div class="m">${noteLink("05 Outreach/Case Competitions.md")}${noteLink("05 Outreach/L'Oréal Brandstorm.md")}${noteLink("case comps/Winning case comp ppts.md")}</div></div></div>`),
   portfolio:()=>roomBoard("portfolio",`<div class="section-label"><span>Certifications</span><i></i><b>${S.certs.length}</b></div>${S.certs.map(c=>`<div class="card"><div class="grow"><div class="t">${esc(c.title)} <span class="tag ok">Certified</span></div><div class="m">${noteLink(c.note)}</div></div></div>`).join("")||'<div class="empty">Finish a course in Learning and it lands here.</div>'}
     <div class="section-label"><span>Projects in your portfolio</span><i></i><b>${S.projects.filter(p=>p.inPortfolio).length}</b></div>${S.projects.filter(p=>p.inPortfolio).map(p=>`<div class="card"><div class="grow"><div class="t">${esc(p.title)}</div><div class="m">${noteLink(p.note)}</div></div></div>`).join("")||'<div class="empty">Mark a project as "in portfolio" in the Projects building.</div>'}`),
-  internship:()=>`<div class="card today"><span class="ico">${ICONS.week}</span><div class="grow"><div class="t">Current: ${esc(S.job.company)} <span class="tag ok">Interning</span></div><div class="m">Tasks from your supervisor go below. Weekly update email every Friday.${noteLink(S.job.note,"Internship note")}</div></div></div>
-    ${roomBoard("internship",`<div class="section-label"><span>Applications</span><i></i></div>${S.internships.map(x=>`<div class="card"><div class="grow"><div class="t">${esc(x.name)} <span class="tag">${INTERN_STEPS[x.status]}</span></div></div>${x.status<INTERN_STEPS.length-1?`<button class="sell" data-intern="${x.id}">Mark ${esc(INTERN_STEPS[x.status+1].toLowerCase())}</button>`:'<span class="tag ok">Offer 🎉</span>'}</div>`).join("")}`)}`,
+  internship:()=>lobbyBoard("internship"),
+  vov:()=>`<div class="card today"><span class="ico">${ICONS.week}</span><div class="grow"><div class="t">Current: ${esc(S.job.company)} <span class="tag ok">Interning</span></div><div class="m">Office: Saturdays 1 to 5 pm. Weekly update email every Friday.${noteLink("20 Career/Internships/Veil of Veda.md","Veil of Veda note")}</div></div></div>
+    ${roomBoard("vov")}`,
+  internfuture:()=>`<p class="mhelp">Dream brands and companies. Tap to move each one along: applied, interview, offer.</p>${roomBoard("internfuture",`<div class="section-label"><span>Dream internships</span><i></i></div>${S.internships.map(x=>`<div class="card"><div class="grow"><div class="t">${esc(x.name)} <span class="tag">${INTERN_STEPS[x.status]}</span></div></div>${x.status<INTERN_STEPS.length-1?`<button class="sell" data-intern="${x.id}">Mark ${esc(INTERN_STEPS[x.status+1].toLowerCase())}</button>`:'<span class="tag ok">Offer 🎉</span>'}</div>`).join("")}`)}`,
   nexora:()=>roomBoard("nexora",`<div class="m" style="margin-top:6px">${noteLink("07 Nexora/Ideas for Nexora.md")}</div>`),
   mktg:()=>roomBoard("mktg"), icc:()=>roomBoard("icc"), family:()=>roomBoard("family"),
   network:()=>`${roomBoard("network")}<div class="section-label"><span>Cold outreach</span><i></i><b>+${TIERS.small.coins} each step</b></div>
@@ -362,7 +385,8 @@ function renderBoard(){
   if(!openPlace){ if(p) p.remove(); return; }
   const pl=PL(openPlace);
   if(!p){ p=document.createElement("section"); p.id="panel"; p.className="panel paper"; p.setAttribute("aria-labelledby","ptitle"); document.body.appendChild(p); }
-  const body=BOARDS[pl.id]?BOARDS[pl.id]():pl.built?roomBoard(pl.id):`<div class="empty">${esc(SOON[pl.id]||"Coming soon.")}</div>`;
+  let body=BOARDS[pl.id]?BOARDS[pl.id]():pl.built?roomBoard(pl.id):`<div class="empty">${esc(SOON[pl.id]||"Coming soon.")}</div>`;
+  if(pl.id==="today"||pl.id==="declutter") body=routineHTML(pl.id)+body;
   const scroll=p.querySelector(".body")?.scrollTop||0;
   applyTheme(p,pl.id); p.classList.toggle("min",panelMin); p.innerHTML=`<header><div><div class="eyebrow">Notice board</div><h1 id="ptitle">${esc(pl.name)}<span class="spark">✦</span></h1><div class="sub">${esc(pl.sub)}</div></div><div class="hbtns"><button class="x" data-act="pmin" aria-expanded="${!panelMin}" title="${panelMin?"Expand":"Minimise"}">${panelMin?"▴ Open":"▾ Minimise"}</button><button class="x" data-act="close" aria-label="Close the board">✕</button></div></header><div class="body">${body}</div>`;
   p.querySelector(".body").scrollTop=scroll;
@@ -400,7 +424,7 @@ const THEMES={bizideas:{img:"biz_office",tint:"255,236,240",acc:"#d9697e",gold:"
   declutter:{img:"bg_declutter",tint:"238,246,236",acc:"#5c8a4a",gold:"#3f6a35",ink:"#2f4a2a"},
   learning:{img:"bg_learning",tint:"250,242,230",acc:"#a0662c",gold:"#7a4a1c",ink:"#4a3220"},
   salon:{img:"bg_salon",tint:"236,240,252",acc:"#d98a3a",gold:"#a8651c",ink:"#2f3a60"}};
-["nexora","mktg","icc"].forEach(k=>THEMES[k]=THEMES.clubs);
+["nexora","mktg","icc"].forEach(k=>THEMES[k]=THEMES.clubs); THEMES.internfuture=THEMES.projects;
 function applyTheme(p,id){ const t=THEMES[id]; p.classList.toggle("th",!!t); if(!t){ p.removeAttribute("style"); return; }
   p.style.setProperty("--tint",t.tint); p.style.setProperty("--acc",t.acc); p.style.setProperty("--gold",t.gold); p.style.setProperty("--ink2",t.ink); p.style.setProperty("--bgimg",`url(assets/${t.img}.jpg)`); }
 
@@ -410,7 +434,7 @@ const MALL_SEED=[
  {id:"cleaning",title:"Cleaning",icon:"🧹",color:"#a8d0c0",items:["Dustbin"]},
  {id:"clothes",title:"Clothes & shoes",icon:"👗",color:"#e8a0b4",items:["Padded bra","Chunky shoes","Period panty"],boughtSeed:["Period panty"]},
  {id:"skin",title:"Skincare & body",icon:"🧴",color:"#d9c0e8",items:["Body lotion: Vaseline Gluta-Hya","Glycolic acid"]},
- {id:"tech",title:"Tech & Lock-In",icon:"💡",color:"#b8c8e8",items:["NFC tags + coloured smart lights (for the Lock-In System)"]},
+ {id:"tech",title:"Tech & Lock-In",icon:"💡",color:"#b8c8e8",items:["NFC tags (for the Lock-In System)","Coloured smart lights (for the Lock-In System)"]},
  {id:"daily",title:"Daily essentials",icon:"🎒",color:"#e8d8a0",items:["Water bottle"]}];
 function mallState(){ if(!S.mall){ S.mall={bought:{},added:{},folders:[]}; MALL_SEED.forEach(f=>(f.boughtSeed||[]).forEach(x=>S.mall.bought[f.id+"|"+x]=true)); } return S.mall; }
 const mallFolders=()=>{ const m=mallState(); return [...MALL_SEED,...m.folders].map(f=>({...f,all:[...(f.items||[]),...(m.added[f.id]||[])]})); };
@@ -422,6 +446,23 @@ BOARDS.skills=()=>{ const m=mallState(), fs=mallFolders(), open=S.mallOpen&&fs.f
   return `<div class="biz"><h2 class="bz-h">Wish it now.<br>Buy it wisely.</h2><div class="bz-sec">Folders</div><div class="bz-grid">${cards}</div>
    <div class="bz-add" style="margin-top:14px"><input id="mall-fin" maxlength="40" placeholder="New folder name"><button class="bz-plus" data-mallfolder="1" aria-label="Add folder">+</button></div><p class="bz-foot">Sales everywhere? Only buy what's on this list. 🚨</p></div>`; };
 
+
+/* ================= Daily routine: fresh every day, never overdue ================= */
+const ROUTINE_SEED=[
+ {id:"wake",title:"Wake up",when:"morning"},{id:"shower",title:"Shower",when:"morning"},{id:"iron",title:"Iron tablets",when:"morning"},
+ {id:"workout",title:"Workout",when:"morning"},{id:"water",title:"Drink 2 litres of water",when:"morning"},
+ {id:"desk",title:"Clean desk",when:"morning",also:["declutter"]},{id:"study",title:"Update study life",when:"morning"},
+ {id:"read",title:"Read: one Aeon essay, or a non-college book",when:"night"},
+ {id:"mails",title:"Clear all mails",when:"night",also:["declutter"]},{id:"notes",title:"Clear notes app",when:"night",also:["declutter"]}];
+const routineItems=()=>[...ROUTINE_SEED,...((S.routineExtra)||[])];
+function routineHTML(place){
+  S.routineDone=S.routineDone||{}; const t=today(), done=S.routineDone[t]||{};
+  const its=routineItems().filter(i=>place==="today"||(i.also||[]).includes(place));
+  if(!its.length) return "";
+  const grp=(w,label)=>{ const xs=its.filter(i=>i.when===w); return xs.length?`<div class="rt-sub">${label}</div><div class="rt-row">${xs.map(i=>`<button class="rt-b ${done[i.id]?"on":""}" data-rt="${esc(i.id)}" aria-pressed="${!!done[i.id]}">${done[i.id]?"✓ ":""}${esc(i.title)}</button>`).join("")}</div>`:""; };
+  const n=its.filter(i=>done[i.id]).length;
+  return `<div class="rt"><div class="rt-h">Daily routine <span>${n}/${its.length}</span></div>${grp("morning","Morning")}${grp("night","Night")}<div class="rt-foot">Fresh every day. Miss one and it simply starts over tomorrow.</div></div>`;
+}
 function openBoard(id){ openPlace=id; portrait=null; panelMin=false; acknowledge(id); logOpen=false; renderAll(); }
 function closeBoard(){ openPlace=null; portrait=null; renderAll(); }
 
@@ -437,8 +478,9 @@ function pay(t,msg,ev,bonus){ S.wallet.coins+=t.coins; S.wallet.xp+=t.xp; if(bon
 
 document.addEventListener("click",e=>{
   if(musicMenu && !e.target.closest(".mwrap")){ musicMenu=false; renderHUD(); }
-  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act],[data-bizadd],[data-bizopen],[data-bizunlock],[data-step],[data-mallopen],[data-malltick],[data-malladd],[data-mallfolder]"); if(!b) return;
+  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act],[data-rt],[data-bizadd],[data-bizopen],[data-bizunlock],[data-step],[data-mallopen],[data-malltick],[data-malladd],[data-mallfolder]"); if(!b) return;
   const d=b.dataset;
+  if(d.rt){ S.routineDone=S.routineDone||{}; const t=today(), m=(S.routineDone[t]=S.routineDone[t]||{}); if(m[d.rt]){ delete m[d.rt]; S.wallet.coins=Math.max(0,S.wallet.coins-10); S.wallet.xp=Math.max(0,S.wallet.xp-5); } else { m[d.rt]=Date.now(); S.wallet.coins+=10; S.wallet.xp+=5; clink(); } for(const k of Object.keys(S.routineDone)) if(daysBetween(k,t)>3) delete S.routineDone[k]; save(); renderAll(); return; }
   if(d.step){ const [rid,n]=d.step.split("|"); const r=S.rules.find(x=>x.id===rid); if(r&&r.steps&&r.steps[+n]){ r.steps[+n].done=!r.steps[+n].done; save(); renderAll(); } return; }
   if(d.mallopen!==undefined){ S.mallOpen=d.mallopen||null; save(); renderAll(); return; }
   if(d.malltick){ const m=mallState(); m.bought[d.malltick]=!m.bought[d.malltick]; save(); renderAll(); return; }
@@ -781,19 +823,20 @@ function importDoc(id,d){
   if(d.type==="quest"&&d.title&&S.rules.some(r=>!r.archived&&r.title&&r.title.toLowerCase().trim()===String(d.title).toLowerCase().trim())){ S.imported[id]=Date.now(); return false; }
   const nid=()=>Math.random().toString(36).slice(2,9), place=d.building&&(PL(d.building)?d.building:null)||"today";
   switch(d.type){
-    case "quest": S.rules.push({id:"ix-"+id,title:String(d.title||"Untitled quest").slice(0,120),place,tier:SIZE[d.size]||"medium",repeat:["daily","weekly"].includes(d.repeat)?d.repeat:"once",
+    case "quest": S.rules.push({id:"ix-"+id,title:String(d.title||"Untitled quest").slice(0,120),place,tier:SIZE[d.size]||"medium",repeat:["daily","weekly","monthly"].includes(d.repeat)?d.repeat:"once",
         days:d.repeat==="weekly"?(Array.isArray(d.days)&&d.days.length?d.days.map(Number):[dowOf(today())]):undefined,start:today(),due:d.repeat&&d.repeat!=="once"?undefined:(d.due||undefined),note:d.note||undefined,steps:Array.isArray(d.steps)&&d.steps.length?d.steps.slice(0,12).map(x=>({t:String(x).slice(0,100),done:false})):undefined}); break;
     case "done": { const it=itemsFor().find(i=>!i.done&&(i.r.id==="ix-"+d.ref||(d.title&&i.r.title.toLowerCase()===String(d.title).toLowerCase())));
         if(it){ const t=TIERS[it.r.tier]; S.done[it.key]={at:Date.now(),coins:t.coins,xp:t.xp}; S.wallet.coins+=t.coins; S.wallet.xp+=t.xp; } break; }
-    case "goal": S.goals.push({id:nid(),title:d.title,note:d.note,state:"vault",milestones:[]}); break;
-    case "project": S.projects.push({id:nid(),title:d.title,note:d.note,inPortfolio:false}); break;
-    case "course": S.courses.push({id:nid(),title:d.title,note:d.note,done:false}); break;
+    case "goal": if(S.goals.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) break; S.goals.push({id:nid(),title:d.title,note:d.note,state:"vault",milestones:[]}); break;
+    case "project": if(S.projects.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) break; S.projects.push({id:nid(),title:d.title,note:d.note,inPortfolio:false}); break;
+    case "course": if(S.courses.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) break; S.courses.push({id:nid(),title:d.title,note:d.note,done:false}); break;
     case "person": if(d.group==="family"){ S.rules.push({id:"ix-"+id,title:"Call "+d.name,place:"family",tier:"small",repeat:"weekly",days:[0],start:today(),note:d.note}); }
                    else S.people.push({id:nid(),name:d.name,where:d.where||"",status:0,note:d.note}); break;
     case "buy": { const m=mallState(), key=String(d.folder||"daily").toLowerCase(); let f=mallFolders().find(x=>x.id===key||x.title.toLowerCase()===key);
         if(!f){ f={id:"f"+nid(),title:String(d.folder).slice(0,40),icon:"🛍️",color:"#e8b4a0",items:[]}; m.folders.push(f); }
         if(d.item){ const list=(m.added[f.id]=m.added[f.id]||[]); if(![...(f.items||[]),...list].some(x=>x.toLowerCase()===String(d.item).toLowerCase())) list.push(String(d.item).slice(0,80)); } break; }
     case "idea": { bizIdeas(); if(!S.biz.ideas.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) S.biz.ideas.push({id:"i"+nid(),title:String(d.title).slice(0,60),sub:d.sub||"New idea",cost:BIZ_COST,color:"#c9b3e0",icon:"💡",note:d.note,pitch:d.pitch||[]}); break; }
+    case "routine": { S.routineExtra=S.routineExtra||[]; if(d.title&&!routineItems().some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) S.routineExtra.push({id:"r"+nid(),title:String(d.title).slice(0,80),when:d.when==="night"?"night":"morning",also:Array.isArray(d.also)?d.also:[]}); break; }
     case "building": S.customPlaces=S.customPlaces||[]; if(d.id&&!PL(d.id)) S.customPlaces.push({id:String(d.id),name:d.name||d.id,sub:d.sub||"",built:true,facade:"087_modern"}); break;
     default: return false;
   }
