@@ -790,6 +790,10 @@ function importDoc(id,d){
     case "course": S.courses.push({id:nid(),title:d.title,note:d.note,done:false}); break;
     case "person": if(d.group==="family"){ S.rules.push({id:"ix-"+id,title:"Call "+d.name,place:"family",tier:"small",repeat:"weekly",days:[0],start:today(),note:d.note}); }
                    else S.people.push({id:nid(),name:d.name,where:d.where||"",status:0,note:d.note}); break;
+    case "buy": { const m=mallState(), key=String(d.folder||"daily").toLowerCase(); let f=mallFolders().find(x=>x.id===key||x.title.toLowerCase()===key);
+        if(!f){ f={id:"f"+nid(),title:String(d.folder).slice(0,40),icon:"🛍️",color:"#e8b4a0",items:[]}; m.folders.push(f); }
+        if(d.item){ const list=(m.added[f.id]=m.added[f.id]||[]); if(![...(f.items||[]),...list].some(x=>x.toLowerCase()===String(d.item).toLowerCase())) list.push(String(d.item).slice(0,80)); } break; }
+    case "idea": { bizIdeas(); if(!S.biz.ideas.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) S.biz.ideas.push({id:"i"+nid(),title:String(d.title).slice(0,60),sub:d.sub||"New idea",cost:BIZ_COST,color:"#c9b3e0",icon:"💡",note:d.note,pitch:d.pitch||[]}); break; }
     case "building": S.customPlaces=S.customPlaces||[]; if(d.id&&!PL(d.id)) S.customPlaces.push({id:String(d.id),name:d.name||d.id,sub:d.sub||"",built:true,facade:"087_modern"}); break;
     default: return false;
   }
