@@ -9,6 +9,7 @@ const PLACES = [
   {id:"career",    name:"Career Hub",       facade:"084_modern",        built:true,  sub:"Case competitions, portfolio and internships.", doors:["casecomp","portfolio","internship"]},
   {id:"clubs",     name:"Clubs Hub",        facade:"024_warehouse",     built:true,  sub:"Nexora, Marketing Club and ICC.", doors:["nexora","mktg","icc"]},
   {id:"people",    name:"People Hub",       facade:"004_brownstone",    built:true,  sub:"Networking, and the people you love.", doors:["network","family"]},
+  {id:"bizideas",  name:"Business Ideas Tower", facade:"087_modern", built:true, sub:"Folders of business ideas. Earn XP to unlock each one."},
   {id:"goals",     name:"Goals Tower",      facade:"064_industrial",    built:true,  sub:"Active goals, and the long-term vault."},
   {id:"projects",  name:"Projects",         facade:"090_modern",        built:true,  sub:"Things you're building, and whether they're in your portfolio."},
   {id:"learning",  name:"Learning",         facade:"074_art_nouveau",   built:true,  sub:"Courses and resources."},
@@ -351,7 +352,7 @@ function renderBoard(){
   if(!p){ p=document.createElement("section"); p.id="panel"; p.className="panel paper"; p.setAttribute("aria-labelledby","ptitle"); document.body.appendChild(p); }
   const body=BOARDS[pl.id]?BOARDS[pl.id]():pl.built?roomBoard(pl.id):`<div class="empty">${esc(SOON[pl.id]||"Coming soon.")}</div>`;
   const scroll=p.querySelector(".body")?.scrollTop||0;
-  p.classList.toggle("min",panelMin); p.innerHTML=`<header><div><div class="eyebrow">Notice board</div><h1 id="ptitle">${esc(pl.name)}<span class="spark">✦</span></h1><div class="sub">${esc(pl.sub)}</div></div><div class="hbtns"><button class="x" data-act="pmin" aria-expanded="${!panelMin}" title="${panelMin?"Expand":"Minimise"}">${panelMin?"▴ Open":"▾ Minimise"}</button><button class="x" data-act="close" aria-label="Close the board">✕</button></div></header><div class="body">${body}</div>`;
+  p.classList.toggle("biz-panel",pl.id==="bizideas"); p.classList.toggle("min",panelMin); p.innerHTML=`<header><div><div class="eyebrow">Notice board</div><h1 id="ptitle">${esc(pl.name)}<span class="spark">✦</span></h1><div class="sub">${esc(pl.sub)}</div></div><div class="hbtns"><button class="x" data-act="pmin" aria-expanded="${!panelMin}" title="${panelMin?"Expand":"Minimise"}">${panelMin?"▴ Open":"▾ Minimise"}</button><button class="x" data-act="close" aria-label="Close the board">✕</button></div></header><div class="body">${body}</div>`;
   p.querySelector(".body").scrollTop=scroll;
 }
 function renderLog(){
@@ -364,6 +365,20 @@ function renderLog(){
   p.querySelector(".body").scrollTop=scroll;
 }
 function renderAll(){ renderHUD(); renderQuests(); renderZoom(); renderBoard(); renderLog(); City.refresh(); }
+
+/* ================= Business Ideas tower: folders of ideas, each unlocked with XP ================= */
+const BIZ_COST=10000;
+const BIZ_SEED=[{id:"lifeisle",title:"Lifeisle",sub:"A game-like operating system for ambitious people and teams",cost:BIZ_COST,color:"#e8a0b4",icon:"🏝️",note:"65 Business Ideas/Lifeisle.md",
+  pitch:["Not a gamified to-do list: an immersive world where every quest moves a real goal.","Start with individuals (My Life Island), add Team Island once people love it.","Reward real outcomes, not busywork. Never surveillance."],
+  steps:["Check domain + trademark for top 3 names","Write the 'games should give back to real life' story","Show it to 5 ambitious friends","Sketch the weekly Voyage Review"]}];
+const bizIdeas=()=>{ S.biz=S.biz||{ideas:[],unlocked:{}}; return [...BIZ_SEED,...(S.biz.ideas||[])]; };
+BOARDS.bizideas=()=>{ const xp=S.wallet.xp, ideas=bizIdeas(), open=S.bizOpen&&ideas.find(i=>i.id===S.bizOpen&&S.biz.unlocked[i.id]);
+  if(open) return `<div class="biz"><button class="bz-back" data-bizopen="">← All ideas</button><h2 class="bz-h">${esc(open.title)}</h2><p class="bz-sub">${esc(open.sub||"")}</p>${(open.pitch||[]).map(x=>`<div class="bz-line">✦ ${esc(x)}</div>`).join("")}${open.steps?`<div class="bz-sec">Next steps</div>${open.steps.map(x=>`<div class="bz-line">☐ ${esc(x)}</div>`).join("")}`:""}<div class="bz-sec">Notes</div>${noteLink(open.note||"65 Business Ideas/Business Ideas.md")}</div>`;
+  const cards=ideas.map(i=>{ const un=!!S.biz.unlocked[i.id], can=xp>=i.cost, pct=Math.min(100,Math.round(xp/i.cost*100));
+    return `<div class="bz-card ${un?"un":"lk"}" style="--tab:${i.color||"#d9a7b8"}"><div class="bz-tab"></div><div class="bz-ic">${un?(i.icon||"📂"):"🔒"}</div><div class="bz-t">${esc(i.title)}</div>`+
+      (un?`<div class="bz-m">Unlocked</div><button class="bz-btn" data-bizopen="${esc(i.id)}">Open →</button>`
+         :`<div class="bz-bar"><i style="width:${pct}%"></i></div><div class="bz-m">${Math.min(xp,i.cost).toLocaleString()} / ${i.cost.toLocaleString()} XP</div><button class="bz-btn" data-bizunlock="${esc(i.id)}" ${can?"":'data-short="1"'}>${can?"Unlock":"Keep earning XP"}</button>`)+`</div>`; }).join("");
+  return `<div class="biz"><h2 class="bz-h">Dream it now.<br>Build it anytime.</h2><div class="bz-add"><input id="bz-in" maxlength="60" placeholder="Name a business idea to save"><button class="bz-plus" data-bizadd="1" aria-label="Add idea">+</button></div><div class="bz-sec">My Ideas</div><div class="bz-grid">${cards}</div><p class="bz-foot">Each idea unlocks at ${BIZ_COST.toLocaleString()} XP. Your XP isn't spent.</p></div>`; };
 function openBoard(id){ openPlace=id; portrait=null; panelMin=false; acknowledge(id); logOpen=false; renderAll(); }
 function closeBoard(){ openPlace=null; portrait=null; renderAll(); }
 
@@ -379,8 +394,11 @@ function pay(t,msg,ev,bonus){ S.wallet.coins+=t.coins; S.wallet.xp+=t.xp; if(bon
 
 document.addEventListener("click",e=>{
   if(musicMenu && !e.target.closest(".mwrap")){ musicMenu=false; renderHUD(); }
-  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act]"); if(!b) return;
+  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act],[data-bizadd],[data-bizopen],[data-bizunlock]"); if(!b) return;
   const d=b.dataset;
+  if(d.bizadd){ const v=(document.getElementById("bz-in")?.value||"").trim(); if(v){ bizIdeas(); S.biz.ideas.push({id:"i"+Date.now().toString(36),title:v.slice(0,60),sub:"New idea",cost:BIZ_COST,color:"#c9b3e0",icon:"💡",pitch:["Write the idea down in Obsidian: 65 Business Ideas."]}); save(); toast("Idea saved. Earn "+BIZ_COST.toLocaleString()+" XP to unlock it."); renderAll(); } return; }
+  if(d.bizopen!==undefined){ S.bizOpen=d.bizopen||null; save(); renderAll(); return; }
+  if(d.bizunlock){ const i=bizIdeas().find(x=>x.id===d.bizunlock); if(i){ if(S.wallet.xp>=i.cost){ S.biz.unlocked[i.id]=Date.now(); S.bizOpen=i.id; save(); toast("Unlocked: "+i.title,true); renderAll(); } else toast(`Need ${i.cost.toLocaleString()} XP. You have ${S.wallet.xp.toLocaleString()}.`); } return; }
   if(d.gunlock){ const g=S.goals.find(x=>x.id===d.gunlock); if(g&&g.state==="vault"&&S.wallet.coins>=GOAL_UNLOCK){ S.wallet.coins-=GOAL_UNLOCK; g.state="unlocked"; save(); toast(`Unlocked: ${g.title}`); renderAll(); } return; }
   if(d.gactive){ const g=S.goals.find(x=>x.id===d.gactive); if(g){ g.state="active"; save(); toast(`${g.title} is now an active goal`); renderAll(); } return; }
   if(d.gvault){ const g=S.goals.find(x=>x.id===d.gvault); if(g){ g.state="unlocked"; save(); renderAll(); } return; }
@@ -456,7 +474,7 @@ const Street=(()=>{
   const lots=[]; let W=0, camX=0, px=200, target=null, face=1, walkT=0, autoAct=null, near=null, t0=performance.now();
   let room=null, rpx=0, streetPx=0; const keys={};
   async function init(){
-    await Promise.all([load("back","assets/sky_back.png"),load("bld","assets/sky_buildings.png"),load("front","assets/sky_front.png"),load("clouds","assets/clouds.png"),load("cats","assets/cats.png"),load("room","assets/room.jpg"),load("arch","assets/arch.png"),load("gate","assets/gate.jpg"),
+    await Promise.all([load("back","assets/sky_back.png"),load("bld","assets/sky_buildings.png"),load("front","assets/sky_front.png"),load("clouds","assets/clouds.png"),load("cats","assets/cats.png"),load("room","assets/room.jpg"),load("biz","assets/biz_office.jpg"),load("arch","assets/arch.png"),load("gate","assets/gate.jpg"),
       ...PLACES.map(p=>load(p.facade,"assets/f/"+p.facade+".png"))]);
     let x=120;
     for(const p of PLACES){ const im=img[p.facade]; const w=im?im.width:200, h=im?im.height:330; lots.push({p,x,w,h,door:x+w/2,deco:im?greenify(im,x):null}); x+=w+64; }
@@ -567,7 +585,7 @@ const Street=(()=>{
     else s.push({x:690,w:260,label:RC(room).label,board:true});
     return s; }
   const FLOOR2=440;
-  function roomBg(dim){ const im=img.room; if(im){ const sc=VW/im.width, h=im.height*sc; g.imageSmoothingEnabled=true; g.drawImage(im,0,(VH-h)/2,VW,h); g.imageSmoothingEnabled=false; } else R(0,0,VW,VH,"#2a2140");
+  function roomBg(dim){ const im=(room==="bizideas"&&img.biz)||img.room; if(im){ const sc=VW/im.width, h=im.height*sc; g.imageSmoothingEnabled=true; g.drawImage(im,0,(VH-h)/2,VW,h); g.imageSmoothingEnabled=false; } else R(0,0,VW,VH,"#2a2140");
     if(dim){ g.fillStyle=`rgba(14,10,30,${dim})`; g.fillRect(0,0,VW,VH); } }
   // stone archway with a glimpse of the room behind it
   function archDoor(cx,base,d,t,hot){ const A=img.arch, s=.6, w=A?A.width*s:240, h=A?A.height*s:236, x=cx-w/2, y=base-h;
