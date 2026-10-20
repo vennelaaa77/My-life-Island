@@ -16,12 +16,14 @@ const PLACES = [
   {id:"declutter", name:"Declutter Hub",    facade:"051_half_timber",   built:true,  sub:"Daily resets and digital clean-ups."},
   {id:"salon",     name:"Salon",            facade:"047_mediterranean", built:true,  sub:"Your Sunday self-care ritual."},
   {id:"hall",      name:"Role Models Hall", facade:"020_limestone",     built:true,  sub:"Women who are crazy, and you love it."},
-  {id:"skills",    name:"Skill Shop",       facade:"097_shop_terrace",  built:false, sub:"Long-term skills, bought with coins."}
+  {id:"skills",    name:"Mall",             facade:"097_shop_terrace",  built:true,  sub:"Everything I want to buy, in folders."}
 ];
 const SUBS = {
   casecomp:  {name:"Case Competitions", parent:"career", sub:"Comps you're entering, and what you learn from winners."},
   portfolio: {name:"Portfolio",         parent:"career", sub:"Certifications and finished projects."},
-  internship:{name:"Internships",       parent:"career", sub:"Your current internship, and applications."},
+  internship:{name:"Internships",       parent:"career", sub:"Your current internship, and applications.", doors:["vov","internfuture"]},
+  vov:       {name:"Veil of Veda",      parent:"internship", sub:"Your current internship: tasks and weekly updates."},
+  internfuture:{name:"Future Internships", parent:"internship", sub:"Applications and dream companies. Coming up."},
   nexora:    {name:"Nexora",            parent:"clubs",  sub:"Nexora tasks and ideas."},
   mktg:      {name:"Marketing Club",    parent:"clubs",  sub:"Marketing Club tasks."},
   icc:       {name:"ICC",               parent:"clubs",  sub:"Unlocked: you landed an internship."},
@@ -30,8 +32,8 @@ const SUBS = {
 };
 try{ const _s=JSON.parse(localStorage.getItem("lifeisland.v2")||"{}"); (_s.customPlaces||[]).forEach(c=>{ if(!PLACES.some(p=>p.id===c.id)) PLACES.push({...c,facade:"087_modern"}); }); }catch(e){}
 const PL = id => PLACES.find(p=>p.id===id) || (SUBS[id] && {id, ...SUBS[id], built:!SUBS[id].soon});
-const parentOf = id => SUBS[id] ? SUBS[id].parent : id;
-const familyOf = id => { const p=PLACES.find(x=>x.id===id); return p&&p.doors ? [id,...p.doors] : [id]; };
+const parentOf = id => SUBS[id] ? parentOf(SUBS[id].parent) : id;
+const familyOf = id => { const p=PLACES.find(x=>x.id===id)||SUBS[id]; return p&&p.doors ? [id,...p.doors.flatMap(d=>familyOf(d))] : [id]; };
 const SOON = { family:"Send me your friends and family list to open this room.", skills:"Long-term skills you buy with coins. Coming soon." };
 const GOAL_UNLOCK = 300;
 
@@ -89,12 +91,12 @@ function itemsFor(place){
   return place==="today" ? out.filter(i=>i.r.place==="today"||["overdue","today","done"].includes(bucketOf(i))) : out;
 }
 // one clear bucket per quest
-function bucketOf(i){ const t=today(); if(i.done) return "done"; if(i.overdue) return "overdue"; if(i.r.repeat!=="once") return "today"; if(!i.due) return "later"; const d=daysBetween(t,i.due); return d<=0?"today":d<=7?"week":"later"; }
-const BUCKETS=[["overdue","Overdue: do these first"],["today","Due today"],["week","This week"],["later","Later"],["done","Done today"]];
+function bucketOf(i){ const t=today(); if(i.done) return "done"; if(i.overdue) return "overdue"; if(i.r.repeat!=="once") return "today"; if(!i.due) return "anytime"; const d=daysBetween(t,i.due); return d<=0?"today":d<=7?"week":"later"; }
+const BUCKETS=[["overdue","Overdue: do these first"],["today","Due today"],["week","This week"],["later","Later"],["anytime","Anytime (no deadline)"],["done","Done today (gone tomorrow)"]];
 function dueText(i){
   if(i.r.repeat==="daily") return "Every day";
   if(i.r.repeat==="weekly") return "Every "+(i.r.days||[]).map(d=>DOW[d]).join(", ");
-  if(!i.due) return "No due date";
+  if(!i.due) return "Anytime";
   const d=daysBetween(today(),i.due), nice=new Date(i.due+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});
   if(d<0) return `${-d} day${d===-1?"":"s"} late · was due ${nice}`; if(d===0) return "Due today"; if(d===1) return "Due tomorrow · "+nice; return `Due in ${d} days · ${nice}`;
 }
@@ -136,6 +138,16 @@ const INBOX=[
   {id:"call-rohit-bava-20261018",title:"Call Rohit Bava",place:"family",tier:"small",repeat:"once",start:"2026-10-18",due:"2026-10-18"}
 ];
 INBOX.forEach(q=>{ if(!S.rules.some(r=>r.id===q.id)) S.rules.push({...q}); }); save();
+// one quest = one card: archive duplicate titles, hide quests Claude made up, route Veil of Veda to its own room
+function tidyRules(){ const seen={}; let c=false;
+  for(const r of S.rules){ if(r.id==="ix-q-20261020-lifeisle-names"&&!r.archived){ r.archived=true; c=true; }
+    if(r.place==="internship"&&/veil of veda|vov/i.test((r.title||"")+" "+(r.note||""))){ r.place="vov"; c=true; }
+    if(r.archived||r.auto||!r.title) continue;
+    const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
+    if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"]; if(rd&&!kd){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
+    else seen[k]=r; }
+  if(c) save(); }
+tidyRules();
 if(S.job&&S.job.company!=="Veil of Veda"&&/Vale of Veda/.test(S.job.company)){ S.job.company="Veil of Veda"; S.job.note="05 Outreach/Internships/Veil of Veda.md"; }
 S.rules.forEach(r=>{ if(r.title&&/Vale of Veda/.test(r.title)){ r.title=r.title.replace("Vale of Veda","Veil of Veda"); r.note="05 Outreach/Internships/Veil of Veda.md"; } }); save();
 const TOP_BUILT = () => PLACES.filter(p=>p.built).map(p=>p.id);
@@ -272,13 +284,13 @@ function questCard(i,opts={}){
     :i.r.auto==="visitall"?`<span class="tag">${visitedToday().filter(x=>TOP_BUILT().includes(x)).length}/${TOP_BUILT().length} visited</span>`
     :`<button class="sell" data-sell="${i.key}" aria-label="Mark ${esc(i.r.title)} done, earn ${t.coins} coins">✓ Done</button>`;
   return `<article class="card ${i.done?"done":""} ${b}"><span class="ico" aria-hidden="true">${ICONS[b]}</span>
-    <div class="grow"><div class="t">${esc(i.r.title)} ${status}</div>
+    <div class="grow"><div class="t">${esc(i.r.title)} ${status}</div>${(i.r.steps||[]).length?`<div class="steps">${i.r.steps.map((s,n)=>`<label class="step ${s.done?"sd":""}"><input type="checkbox" data-step="${esc(i.r.id)}|${n}" ${s.done?"checked":""}> ${esc(s.t)}</label>`).join("")}</div>`:""}
       <div class="m"><span class="when">${esc(dueText(i))}</span>${opts.showPlace?`<button class="chip" data-go="${i.r.place}">${esc(PL(i.r.place).name)}</button>`:""}${noteLink(i.r.note)}</div></div>
     <div class="reward" title="${t.label} quest"><span><span class="coin"></span>+${t.coins}</span><small>+${t.xp} XP</small></div>
     ${act}<button class="icon-btn" data-archive="${i.r.id}" aria-label="Delete quest ${esc(i.r.title)}" title="Delete quest">🗑</button></article>`;
 }
-const ICONS={overdue:'<svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 2 1 3 3 3 5"/></svg>',today:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>',week:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',later:'<svg viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/></svg>',done:'<svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>'};
-function grouped(items,opts){ items=items.filter(i=>!i.done); return BUCKETS.map(([k,label])=>{ const xs=items.filter(i=>bucketOf(i)===k); return xs.length?`<div class="section-label ${k}"><span>${label}</span><i></i><b>${xs.length}</b></div>${xs.map(i=>questCard(i,opts)).join("")}`:""; }).join("")||'<div class="empty">No quests here. Add one below.</div>'; }
+const ICONS={anytime:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 7v5l3 2"/></svg>',overdue:'<svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 2 1 3 3 3 5"/></svg>',today:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>',week:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',later:'<svg viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/></svg>',done:'<svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>'};
+function grouped(items,opts){ return BUCKETS.map(([k,label])=>{ const xs=items.filter(i=>bucketOf(i)===k); return xs.length?`<div class="section-label ${k}"><span>${label}</span><i></i><b>${xs.length}</b></div>${xs.map(i=>questCard(i,opts)).join("")}`:""; }).join("")||'<div class="empty">No quests here. Add one below.</div>'; }
 function addForm(place){
   const where=place?`<input type="hidden" name="place" value="${place}">`:`<label for="f-place">Where it lives<select id="f-place" name="place">${[...PLACES.filter(p=>p.built&&!p.doors&&p.id!=="hall"),...Object.keys(SUBS).map(PL).filter(p=>p.built)].map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</select></label>`;
   return `<form class="add" data-add>
@@ -352,7 +364,7 @@ function renderBoard(){
   if(!p){ p=document.createElement("section"); p.id="panel"; p.className="panel paper"; p.setAttribute("aria-labelledby","ptitle"); document.body.appendChild(p); }
   const body=BOARDS[pl.id]?BOARDS[pl.id]():pl.built?roomBoard(pl.id):`<div class="empty">${esc(SOON[pl.id]||"Coming soon.")}</div>`;
   const scroll=p.querySelector(".body")?.scrollTop||0;
-  p.classList.toggle("biz-panel",pl.id==="bizideas"); p.classList.toggle("min",panelMin); p.innerHTML=`<header><div><div class="eyebrow">Notice board</div><h1 id="ptitle">${esc(pl.name)}<span class="spark">✦</span></h1><div class="sub">${esc(pl.sub)}</div></div><div class="hbtns"><button class="x" data-act="pmin" aria-expanded="${!panelMin}" title="${panelMin?"Expand":"Minimise"}">${panelMin?"▴ Open":"▾ Minimise"}</button><button class="x" data-act="close" aria-label="Close the board">✕</button></div></header><div class="body">${body}</div>`;
+  applyTheme(p,pl.id); p.classList.toggle("min",panelMin); p.innerHTML=`<header><div><div class="eyebrow">Notice board</div><h1 id="ptitle">${esc(pl.name)}<span class="spark">✦</span></h1><div class="sub">${esc(pl.sub)}</div></div><div class="hbtns"><button class="x" data-act="pmin" aria-expanded="${!panelMin}" title="${panelMin?"Expand":"Minimise"}">${panelMin?"▴ Open":"▾ Minimise"}</button><button class="x" data-act="close" aria-label="Close the board">✕</button></div></header><div class="body">${body}</div>`;
   p.querySelector(".body").scrollTop=scroll;
 }
 function renderLog(){
@@ -379,6 +391,37 @@ BOARDS.bizideas=()=>{ const xp=S.wallet.xp, ideas=bizIdeas(), open=S.bizOpen&&id
       (un?`<div class="bz-m">Unlocked</div><button class="bz-btn" data-bizopen="${esc(i.id)}">Open →</button>`
          :`<div class="bz-bar"><i style="width:${pct}%"></i></div><div class="bz-m">${Math.min(xp,i.cost).toLocaleString()} / ${i.cost.toLocaleString()} XP</div><button class="bz-btn" data-bizunlock="${esc(i.id)}" ${can?"":'data-short="1"'}>${can?"Unlock":"Keep earning XP"}</button>`)+`</div>`; }).join("");
   return `<div class="biz"><h2 class="bz-h">Dream it now.<br>Build it anytime.</h2><div class="bz-add"><input id="bz-in" maxlength="60" placeholder="Name a business idea to save"><button class="bz-plus" data-bizadd="1" aria-label="Add idea">+</button></div><div class="bz-sec">My Ideas</div><div class="bz-grid">${cards}</div><p class="bz-foot">Each idea unlocks at ${BIZ_COST.toLocaleString()} XP. Your XP isn't spent.</p></div>`; };
+
+/* ================= coloured room themes for the boards ================= */
+const THEMES={bizideas:{img:"biz_office",tint:"255,236,240",acc:"#d9697e",gold:"#a8763c",ink:"#6b4a3a"},
+  skills:{img:"biz_office",tint:"255,240,226",acc:"#e8956a",gold:"#b0702e",ink:"#6b4a3a"},
+  clubs:{img:"bg_clubs",tint:"252,238,234",acc:"#b8323a",gold:"#8a2a30",ink:"#4a2a2a"},
+  projects:{img:"bg_projects",tint:"242,236,252",acc:"#7a5cc8",gold:"#5a3fa0",ink:"#3a3060"},
+  declutter:{img:"bg_declutter",tint:"238,246,236",acc:"#5c8a4a",gold:"#3f6a35",ink:"#2f4a2a"},
+  learning:{img:"bg_learning",tint:"250,242,230",acc:"#a0662c",gold:"#7a4a1c",ink:"#4a3220"},
+  salon:{img:"bg_salon",tint:"236,240,252",acc:"#d98a3a",gold:"#a8651c",ink:"#2f3a60"}};
+["nexora","mktg","icc"].forEach(k=>THEMES[k]=THEMES.clubs);
+function applyTheme(p,id){ const t=THEMES[id]; p.classList.toggle("th",!!t); if(!t){ p.removeAttribute("style"); return; }
+  p.style.setProperty("--tint",t.tint); p.style.setProperty("--acc",t.acc); p.style.setProperty("--gold",t.gold); p.style.setProperty("--ink2",t.ink); p.style.setProperty("--bgimg",`url(assets/${t.img}.jpg)`); }
+
+/* ================= Mall: wishlist in folders ================= */
+const MALL_SEED=[
+ {id:"decor",title:"Room decor",icon:"🏠",color:"#e8b4a0",items:["Room/air freshener (Starlight)"]},
+ {id:"cleaning",title:"Cleaning",icon:"🧹",color:"#a8d0c0",items:["Dustbin"]},
+ {id:"clothes",title:"Clothes & shoes",icon:"👗",color:"#e8a0b4",items:["Padded bra","Chunky shoes","Period panty"],boughtSeed:["Period panty"]},
+ {id:"skin",title:"Skincare & body",icon:"🧴",color:"#d9c0e8",items:["Body lotion: Vaseline Gluta-Hya","Glycolic acid"]},
+ {id:"tech",title:"Tech & Lock-In",icon:"💡",color:"#b8c8e8",items:["NFC tags + coloured smart lights (for the Lock-In System)"]},
+ {id:"daily",title:"Daily essentials",icon:"🎒",color:"#e8d8a0",items:["Water bottle"]}];
+function mallState(){ if(!S.mall){ S.mall={bought:{},added:{},folders:[]}; MALL_SEED.forEach(f=>(f.boughtSeed||[]).forEach(x=>S.mall.bought[f.id+"|"+x]=true)); } return S.mall; }
+const mallFolders=()=>{ const m=mallState(); return [...MALL_SEED,...m.folders].map(f=>({...f,all:[...(f.items||[]),...(m.added[f.id]||[])]})); };
+BOARDS.skills=()=>{ const m=mallState(), fs=mallFolders(), open=S.mallOpen&&fs.find(f=>f.id===S.mallOpen);
+  if(open){ return `<div class="biz"><button class="bz-back" data-mallopen="">← All folders</button><h2 class="bz-h">${open.icon} ${esc(open.title)}</h2>${open.all.map(x=>{ const k=open.id+"|"+x, b=!!m.bought[k]; return `<label class="bz-line ${b?"bz-got":""}"><input type="checkbox" data-malltick="${esc(k)}" ${b?"checked":""}> ${esc(x)}</label>`; }).join("")||'<div class="bz-line">Nothing here yet.</div>'}
+    <div class="bz-add" style="margin-top:12px"><input id="mall-in" maxlength="80" placeholder="Add something to buy"><button class="bz-plus" data-malladd="${esc(open.id)}" aria-label="Add item">+</button></div></div>`; }
+  const cards=fs.map(f=>{ const n=f.all.filter(x=>!m.bought[f.id+"|"+x]).length, g=f.all.length-n;
+    return `<div class="bz-card un" style="--tab:${f.color}"><div class="bz-tab"></div><div class="bz-ic">${f.icon}</div><div class="bz-t">${esc(f.title)}</div><div class="bz-m">${n} to buy${g?` · ${g} bought`:""}</div><button class="bz-btn" data-mallopen="${esc(f.id)}">Open →</button></div>`; }).join("");
+  return `<div class="biz"><h2 class="bz-h">Wish it now.<br>Buy it wisely.</h2><div class="bz-sec">Folders</div><div class="bz-grid">${cards}</div>
+   <div class="bz-add" style="margin-top:14px"><input id="mall-fin" maxlength="40" placeholder="New folder name"><button class="bz-plus" data-mallfolder="1" aria-label="Add folder">+</button></div><p class="bz-foot">Sales everywhere? Only buy what's on this list. 🚨</p></div>`; };
+
 function openBoard(id){ openPlace=id; portrait=null; panelMin=false; acknowledge(id); logOpen=false; renderAll(); }
 function closeBoard(){ openPlace=null; portrait=null; renderAll(); }
 
@@ -394,8 +437,13 @@ function pay(t,msg,ev,bonus){ S.wallet.coins+=t.coins; S.wallet.xp+=t.xp; if(bon
 
 document.addEventListener("click",e=>{
   if(musicMenu && !e.target.closest(".mwrap")){ musicMenu=false; renderHUD(); }
-  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act],[data-bizadd],[data-bizopen],[data-bizunlock]"); if(!b) return;
+  const b=e.target.closest("[data-gunlock],[data-gactive],[data-gvault],[data-proj],[data-course],[data-focus],[data-go],[data-sell],[data-unsell],[data-archive],[data-mile],[data-person],[data-intern],[data-unlock],[data-portrait],[data-act],[data-bizadd],[data-bizopen],[data-bizunlock],[data-step],[data-mallopen],[data-malltick],[data-malladd],[data-mallfolder]"); if(!b) return;
   const d=b.dataset;
+  if(d.step){ const [rid,n]=d.step.split("|"); const r=S.rules.find(x=>x.id===rid); if(r&&r.steps&&r.steps[+n]){ r.steps[+n].done=!r.steps[+n].done; save(); renderAll(); } return; }
+  if(d.mallopen!==undefined){ S.mallOpen=d.mallopen||null; save(); renderAll(); return; }
+  if(d.malltick){ const m=mallState(); m.bought[d.malltick]=!m.bought[d.malltick]; save(); renderAll(); return; }
+  if(d.malladd){ const v=(document.getElementById("mall-in")?.value||"").trim(); if(v){ const m=mallState(); (m.added[d.malladd]=m.added[d.malladd]||[]).push(v.slice(0,80)); save(); toast("Added to your wishlist"); renderAll(); } return; }
+  if(d.mallfolder){ const v=(document.getElementById("mall-fin")?.value||"").trim(); if(v){ const m=mallState(); m.folders.push({id:"f"+Date.now().toString(36),title:v.slice(0,40),icon:"🛍️",color:"#e8b4a0",items:[]}); save(); renderAll(); } return; }
   if(d.bizadd){ const v=(document.getElementById("bz-in")?.value||"").trim(); if(v){ bizIdeas(); S.biz.ideas.push({id:"i"+Date.now().toString(36),title:v.slice(0,60),sub:"New idea",cost:BIZ_COST,color:"#c9b3e0",icon:"💡",pitch:["Write the idea down in Obsidian: 65 Business Ideas."]}); save(); toast("Idea saved. Earn "+BIZ_COST.toLocaleString()+" XP to unlock it."); renderAll(); } return; }
   if(d.bizopen!==undefined){ S.bizOpen=d.bizopen||null; save(); renderAll(); return; }
   if(d.bizunlock){ const i=bizIdeas().find(x=>x.id===d.bizunlock); if(i){ if(S.wallet.xp>=i.cost){ S.biz.unlocked[i.id]=Date.now(); S.bizOpen=i.id; save(); toast("Unlocked: "+i.title,true); renderAll(); } else toast(`Need ${i.cost.toLocaleString()} XP. You have ${S.wallet.xp.toLocaleString()}.`); } return; }
@@ -474,7 +522,7 @@ const Street=(()=>{
   const lots=[]; let W=0, camX=0, px=200, target=null, face=1, walkT=0, autoAct=null, near=null, t0=performance.now();
   let room=null, rpx=0, streetPx=0; const keys={};
   async function init(){
-    await Promise.all([load("back","assets/sky_back.png"),load("bld","assets/sky_buildings.png"),load("front","assets/sky_front.png"),load("clouds","assets/clouds.png"),load("cats","assets/cats.png"),load("room","assets/room.jpg"),load("biz","assets/biz_office.jpg"),load("arch","assets/arch.png"),load("gate","assets/gate.jpg"),
+    await Promise.all([load("back","assets/sky_back.png"),load("bld","assets/sky_buildings.png"),load("front","assets/sky_front.png"),load("clouds","assets/clouds.png"),load("cats","assets/cats.png"),load("room","assets/room.jpg"),load("biz","assets/biz_office.jpg"),load("bg_clubs","assets/bg_clubs.jpg"),load("bg_projects","assets/bg_projects.jpg"),load("bg_declutter","assets/bg_declutter.jpg"),load("bg_learning","assets/bg_learning.jpg"),load("bg_salon","assets/bg_salon.jpg"),load("arch","assets/arch.png"),load("gate","assets/gate.jpg"),
       ...PLACES.map(p=>load(p.facade,"assets/f/"+p.facade+".png"))]);
     let x=120;
     for(const p of PLACES){ const im=img[p.facade]; const w=im?im.width:200, h=im?im.height:330; lots.push({p,x,w,h,door:x+w/2,deco:im?greenify(im,x):null}); x+=w+64; }
@@ -579,13 +627,14 @@ const Street=(()=>{
     career:{label:"Career board"}, clubs:{label:"Clubs board"}, people:{label:"People board"}, declutter:{label:"Reset board"}, projects:{label:"Project board"}, learning:{label:"Course board"} };
   const RC=id=>({...ROOM_DEF,...(ROOM[id]||{})});
   function stations(){ if(!room) return []; const s=[{x:40,w:56,label:SUBS[room]?"Back to the lobby":"Exit",exit:true}];
-    const P=PLACES.find(p=>p.id===room);
+    const P=PLACES.find(p=>p.id===room)||(SUBS[room]&&SUBS[room].doors?{id:room,doors:SUBS[room].doors}:null);
     if(P&&P.doors){ const xs=P.doors.length===3?[166,481,798]:[166,798]; s.push({x:P.doors.length===3?325:481,w:80,label:RC(room).label,board:true}); P.doors.forEach((d,i)=>s.push({x:xs[i],w:110,label:PL(d).name,door:d})); }
     else if(room==="hall") S.models.forEach((m,n)=>s.push({x:170+n*80,w:60,label:m.unlocked?m.name.split(" ")[0]:"Locked",portrait:n}));
     else s.push({x:690,w:260,label:RC(room).label,board:true});
     return s; }
   const FLOOR2=440;
-  function roomBg(dim){ const im=(room==="bizideas"&&img.biz)||img.room; if(im){ const sc=VW/im.width, h=im.height*sc; g.imageSmoothingEnabled=true; g.drawImage(im,0,(VH-h)/2,VW,h); g.imageSmoothingEnabled=false; } else R(0,0,VW,VH,"#2a2140");
+  const ROOMBG={bizideas:"biz",clubs:"bg_clubs",nexora:"bg_clubs",mktg:"bg_clubs",icc:"bg_clubs",projects:"bg_projects",declutter:"bg_declutter",learning:"bg_learning",salon:"bg_salon"};
+  function roomBg(dim){ const im=(ROOMBG[room]&&img[ROOMBG[room]])||img.room; if(im){ const sc=VW/im.width, h=im.height*sc; g.imageSmoothingEnabled=true; g.drawImage(im,0,(VH-h)/2,VW,h); g.imageSmoothingEnabled=false; } else R(0,0,VW,VH,"#2a2140");
     if(dim){ g.fillStyle=`rgba(14,10,30,${dim})`; g.fillRect(0,0,VW,VH); } }
   // stone archway with a glimpse of the room behind it
   function archDoor(cx,base,d,t,hot){ const A=img.arch, s=.6, w=A?A.width*s:240, h=A?A.height*s:236, x=cx-w/2, y=base-h;
@@ -596,7 +645,7 @@ const Street=(()=>{
     if(hot){ g.save(); g.globalCompositeOperation="lighter"; glow(cx,base-h/2,w*.7,"rgba(200,180,255,A)",.25); g.restore(); }
     const P=PL(d), m=P.built?markerFor(d):""; sign(cx,y-6,P.name+(P.built?"":" · soon"),hot,!P.built); if(m) diamond(cx,y-34+Math.round(Math.sin(t*3+cx)*3),m); }
   function drawRoom(t){
-    const P=PL(room), built=P.built, hub=PLACES.find(p=>p.id===room&&p.doors);
+    const P=PL(room), built=P.built, hub=PLACES.find(p=>p.id===room&&p.doors)||(SUBS[room]&&SUBS[room].doors?{id:room,doors:SUBS[room].doors}:null);
     if(!hub) roomBg(0);
     g.save(); g.globalCompositeOperation="lighter"; glow(626,220,110,"rgba(255,170,90,A)",.18+.05*Math.sin(t*.8)); glow(780,360,140,"rgba(255,190,120,A)",.10+.03*Math.sin(t*1.3)); g.restore();
     for(let i=0;i<26;i++){ const lx=30+((i*131)%520), ly=290+((i*47)%60); if(Math.sin(t*1.7+i*2.3)>.55) R(lx,ly,2,2,"#ffe3a0"); }
@@ -726,12 +775,14 @@ async function initCity(){
    Shapes: {type:"quest",title,building,size,repeat,due,days,note} · {type:"done",title|ref} · {type:"goal",title,note}
            {type:"project",title,note} · {type:"course",title,note} · {type:"person",name,where,group} · {type:"building",id,name,sub} */
 const SIZE={small:"small",medium:"medium",big:"big",s:"small",m:"medium",l:"big"};
+const BLOCKED_DOCS=["q-20261020-lifeisle-names"];
 function importDoc(id,d){
-  S.imported=S.imported||{}; if(S.imported[id]||!d||!d.type) return false;
+  S.imported=S.imported||{}; if(BLOCKED_DOCS.includes(id)){ S.imported[id]=1; return false; } if(S.imported[id]||!d||!d.type) return false;
+  if(d.type==="quest"&&d.title&&S.rules.some(r=>!r.archived&&r.title&&r.title.toLowerCase().trim()===String(d.title).toLowerCase().trim())){ S.imported[id]=Date.now(); return false; }
   const nid=()=>Math.random().toString(36).slice(2,9), place=d.building&&(PL(d.building)?d.building:null)||"today";
   switch(d.type){
     case "quest": S.rules.push({id:"ix-"+id,title:String(d.title||"Untitled quest").slice(0,120),place,tier:SIZE[d.size]||"medium",repeat:["daily","weekly"].includes(d.repeat)?d.repeat:"once",
-        days:d.repeat==="weekly"?(Array.isArray(d.days)&&d.days.length?d.days.map(Number):[dowOf(today())]):undefined,start:today(),due:d.repeat&&d.repeat!=="once"?undefined:(d.due||today()),note:d.note||undefined}); break;
+        days:d.repeat==="weekly"?(Array.isArray(d.days)&&d.days.length?d.days.map(Number):[dowOf(today())]):undefined,start:today(),due:d.repeat&&d.repeat!=="once"?undefined:(d.due||undefined),note:d.note||undefined,steps:Array.isArray(d.steps)&&d.steps.length?d.steps.slice(0,12).map(x=>({t:String(x).slice(0,100),done:false})):undefined}); break;
     case "done": { const it=itemsFor().find(i=>!i.done&&(i.r.id==="ix-"+d.ref||(d.title&&i.r.title.toLowerCase()===String(d.title).toLowerCase())));
         if(it){ const t=TIERS[it.r.tier]; S.done[it.key]={at:Date.now(),coins:t.coins,xp:t.xp}; S.wallet.coins+=t.coins; S.wallet.xp+=t.xp; } break; }
     case "goal": S.goals.push({id:nid(),title:d.title,note:d.note,state:"vault",milestones:[]}); break;
@@ -746,7 +797,7 @@ function importDoc(id,d){
 }
 (async()=>{ try{ const db=await window.claude?.use?.("db"); if(!db) return;
   db.collection("inbox").onSnapshot(snap=>{ let n=0, b=0; for(const doc of snap.docs){ const d=doc.data(); if(importDoc(doc.id,d)){ n++; if(d.type==="building") b++; } }
-    if(n){ save(); renderAll(); toast(`${n} update${n>1?"s":""} from Obsidian${b?" · reload to see the new building":""}`); } }, ()=>{}); }catch(e){} })();
+    if(n){ tidyRules(); save(); renderAll(); toast(`${n} update${n>1?"s":""} from Obsidian${b?" · reload to see the new building":""}`); } }, ()=>{}); }catch(e){} })();
 
 /* ================= boot: title over the slowly turning city ================= */
 const sky=document.getElementById("sky"); for(let i=0;i<90;i++){ const s=document.createElement("i"); s.style.left=Math.random()*100+"%"; s.style.top=Math.random()*70+"%"; s.style.animationDelay=(Math.random()*3)+"s"; if(Math.random()<.15) s.style.width=s.style.height="3px"; sky.appendChild(s); }

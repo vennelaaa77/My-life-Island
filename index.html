@@ -382,18 +382,22 @@ body{background:#0c1230}
 .statrow .num em{font-style:normal;color:#8f9bc2;font-size:11px}
 .statrow .num{min-width:96px}
 
-/* Business Ideas tower: pink office look */
-.panel.biz-panel{background:linear-gradient(rgba(255,236,240,.80),rgba(255,226,234,.86)),url(assets/biz_office.jpg) center/cover;color:#6b4a3a;border:2px solid #c9a15a;border-radius:22px;box-shadow:0 10px 40px rgba(120,60,80,.35);width:min(430px,calc(100vw - 24px))}
-.panel.biz-panel header{border-bottom:1px solid #d8b87a;background:transparent}.panel.biz-panel h1{color:#9a6b3a;font-family:Georgia,serif}.panel.biz-panel .eyebrow,.panel.biz-panel .sub{color:#b0836a}
-.biz{padding:6px 14px 18px;font-family:Georgia,serif}.bz-h{font-size:30px;line-height:1.05;color:#a8763c;margin:6px 0 14px;font-weight:400}
-.bz-add{display:flex;gap:8px;margin-bottom:14px}.bz-add input{flex:1;padding:11px 12px;border:1px solid #c9a15a;border-radius:12px;background:#fff6f4;color:#6b4a3a;font:14px system-ui}
-.bz-plus{width:46px;border:1px solid #b9556a;border-radius:12px;background:#d9697e;color:#fff;font-size:24px;cursor:pointer}
-.bz-sec{margin:12px 0 8px;color:#9a6b3a;font-size:16px;border-bottom:1px solid #d8b87a;padding-bottom:3px}
-.bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bz-card{position:relative;background:#fff7f5;border:1px solid #c9a15a;border-radius:14px;padding:16px 12px 12px;margin-top:8px;box-shadow:0 3px 8px rgba(150,90,100,.15)}
-.bz-tab{position:absolute;left:8px;top:-8px;width:56px;height:9px;border-radius:7px 7px 0 0;background:var(--tab)}.bz-ic{font-size:26px}.bz-t{font-size:16px;margin:4px 0;color:#6b4a3a}.bz-m{font:12px system-ui;color:#9a7b6a;margin:4px 0}
-.bz-card.lk{opacity:.95}.bz-bar{height:6px;border-radius:4px;background:#ecd3d3;overflow:hidden;margin-top:6px}.bz-bar i{display:block;height:100%;background:#d9697e}
-.bz-btn,.bz-back{margin-top:6px;padding:7px 12px;border:1px solid #c9a15a;border-radius:10px;background:#fff;color:#8a5a2a;cursor:pointer;font:13px system-ui}.bz-btn[data-short]{opacity:.65}
-.bz-sub{color:#a47e6a;margin:0 0 10px}.bz-line{background:#fff7f5;border:1px solid #ead2c8;border-radius:10px;padding:8px 10px;margin:6px 0;font:13px system-ui}.bz-foot{font:12px system-ui;color:#a47e6a;margin-top:12px}
+/* themed boards (business, mall, clubs, projects, declutter, learning, salon) */
+.panel.th{background:linear-gradient(rgba(var(--tint),.84),rgba(var(--tint),.9)),var(--bgimg) center/cover;color:var(--ink2);border:2px solid var(--gold);border-radius:22px;box-shadow:0 10px 40px rgba(60,30,50,.35);width:min(430px,calc(100vw - 24px))}
+.panel.th header{border-bottom:1px solid var(--gold);background:transparent}.panel.th h1{color:var(--gold);font-family:Georgia,serif}.panel.th .eyebrow,.panel.th .sub{color:var(--ink2);opacity:.8}
+.panel.th .card{background:rgba(255,255,255,.74);border-color:var(--gold);box-shadow:none;color:var(--ink2)}.panel.th .card .t{color:var(--ink2)}.panel.th .section-label{color:var(--gold)}
+.biz{padding:6px 14px 18px;font-family:Georgia,serif;color:var(--ink2)}.bz-h{font-size:30px;line-height:1.05;color:var(--gold);margin:6px 0 14px;font-weight:400}
+.bz-add{display:flex;gap:8px;margin-bottom:14px}.bz-add input{flex:1;padding:11px 12px;border:1px solid var(--gold);border-radius:12px;background:rgba(255,255,255,.85);color:var(--ink2);font:14px system-ui}
+.bz-plus{width:46px;border:1px solid var(--gold);border-radius:12px;background:var(--acc);color:#fff;font-size:24px;cursor:pointer}
+.bz-sec{margin:12px 0 8px;color:var(--gold);font-size:16px;border-bottom:1px solid var(--gold);padding-bottom:3px}
+.bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bz-card{position:relative;background:rgba(255,255,255,.78);border:1px solid var(--gold);border-radius:14px;padding:16px 12px 12px;margin-top:8px;box-shadow:0 3px 8px rgba(80,40,60,.15)}
+.bz-tab{position:absolute;left:8px;top:-8px;width:56px;height:9px;border-radius:7px 7px 0 0;background:var(--tab)}.bz-ic{font-size:26px}.bz-t{font-size:16px;margin:4px 0}.bz-m{font:12px system-ui;opacity:.8;margin:4px 0}
+.bz-bar{height:6px;border-radius:4px;background:rgba(0,0,0,.1);overflow:hidden;margin-top:6px}.bz-bar i{display:block;height:100%;background:var(--acc)}
+.bz-btn,.bz-back{margin-top:6px;padding:7px 12px;border:1px solid var(--gold);border-radius:10px;background:#fff;color:var(--gold);cursor:pointer;font:13px system-ui}.bz-btn[data-short]{opacity:.65}
+.bz-sub{opacity:.8;margin:0 0 10px}.bz-line{display:block;background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:8px 10px;margin:6px 0;font:13px system-ui}.bz-got{opacity:.55;text-decoration:line-through}.bz-foot{font:12px system-ui;opacity:.8;margin-top:12px}
+/* quests: done = grey + struck out until tomorrow; steps checklist */
+.card.done{opacity:.55;filter:grayscale(1)}.card.done .t{text-decoration:line-through}
+.steps{margin:4px 0 2px}.step{display:block;font:13px system-ui;padding:1px 0}.step.sd{text-decoration:line-through;opacity:.6}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <div id="sky" aria-hidden="true"><div class="moon"></div></div>
