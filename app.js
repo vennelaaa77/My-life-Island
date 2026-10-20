@@ -842,6 +842,7 @@ function importDoc(id,d){
         if(!f){ f={id:"f"+nid(),title:String(d.folder).slice(0,40),icon:"🛍️",color:"#e8b4a0",items:[]}; m.folders.push(f); }
         if(d.item){ const list=(m.added[f.id]=m.added[f.id]||[]); if(![...(f.items||[]),...list].some(x=>x.toLowerCase()===String(d.item).toLowerCase())) list.push(String(d.item).slice(0,80)); } break; }
     case "idea": { bizIdeas(); if(!S.biz.ideas.some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) S.biz.ideas.push({id:"i"+nid(),title:String(d.title).slice(0,60),sub:d.sub||"New idea",cost:BIZ_COST,color:"#c9b3e0",icon:"💡",note:d.note,pitch:d.pitch||[]}); break; }
+    case "dream": { S.internships=S.internships||[]; if(d.name&&!S.internships.some(x=>x.name.toLowerCase()===String(d.name).toLowerCase())) S.internships.push({id:nid(),name:String(d.name).slice(0,60),status:0}); break; }
     case "routine": { S.routineExtra=S.routineExtra||[]; if(d.title&&!routineItems().some(x=>x.title.toLowerCase()===String(d.title).toLowerCase())) S.routineExtra.push({id:"r"+nid(),title:String(d.title).slice(0,80),when:d.when==="night"?"night":"morning",also:Array.isArray(d.also)?d.also:[]}); break; }
     case "building": S.customPlaces=S.customPlaces||[]; if(d.id&&!PL(d.id)) S.customPlaces.push({id:String(d.id),name:d.name||d.id,sub:d.sub||"",built:true,facade:"087_modern"}); break;
     default: return false;
