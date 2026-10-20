@@ -163,6 +163,7 @@ tidyOnce();
 function tidyRules(){ const seen={}; let c=false;
   for(const r of S.rules){ if(r.id==="ix-q-20261020-lifeisle-names"&&!r.archived){ r.archived=true; c=true; }
     if(r.place==="internship"&&/veil of veda|vov/i.test((r.title||"")+" "+(r.note||""))){ r.place="vov"; c=true; }
+    if(/^send the weekly update email to veil of veda$/i.test(r.title||"")&&!r.archived){ r.archived=true; c=true; }
     if(r.archived||r.auto||!r.title) continue;
     const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
     if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"]; if(rd&&!kd){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
