@@ -159,7 +159,12 @@ function tidyOnce(){ if(S.v4) return; S.v4=true;
   const dd=(arr,key)=>{ const seen={}; return (arr||[]).filter(x=>{ const k=String(x[key]||"").toLowerCase().trim(); if(!k||seen[k]) return !k; seen[k]=1; return true; }); };
   S.goals=dd(S.goals,"title"); S.projects=dd(S.projects,"title"); S.courses=dd(S.courses,"title"); S.people=dd(S.people,"name"); S.internships=dd(S.internships,"name");
   save(); }
-tidyOnce();
+// v5: the IIT Guwahati course is not finished yet; undo a wrong "done" caused by a duplicate merge
+function tidyV5(){ if(S.v5) return; S.v5=true;
+  (S.courses||[]).forEach(c=>{ if(/iit guwahati/i.test(c.title||"")) c.done=false; });
+  if(Array.isArray(S.certs)) S.certs=S.certs.filter(x=>!/iit guwahati/i.test(x.title||""));
+  save(); }
+tidyOnce(); tidyV5();
 function tidyRules(){ const seen={}; let c=false;
   for(const r of S.rules){ if(r.id==="ix-q-20261020-lifeisle-names"&&!r.archived){ r.archived=true; c=true; }
     if(r.place==="internship"&&/veil of veda|vov/i.test((r.title||"")+" "+(r.note||""))){ r.place="vov"; c=true; }
