@@ -22,7 +22,7 @@ const SUBS = {
   casecomp:  {name:"Case Competitions", parent:"career", sub:"Comps you're entering, and what you learn from winners."},
   portfolio: {name:"Portfolio",         parent:"career", sub:"Certifications and finished projects."},
   internship:{name:"Internships",       parent:"career", sub:"Your current internship, and applications.", doors:["vov","internfuture"]},
-  vov:       {name:"Veil of Veda",      parent:"internship", sub:"Your current internship: tasks and weekly updates."},
+  vov:       {name:"Emergent AI",       parent:"internship", sub:"Your current internship: tasks and weekly updates."},
   internfuture:{name:"Future Internships", parent:"internship", sub:"Applications and dream companies. Coming up."},
   nexora:    {name:"Nexora",            parent:"clubs",  sub:"Nexora tasks and ideas."},
   mktg:      {name:"Marketing Club",    parent:"clubs",  sub:"Marketing Club tasks."},
@@ -129,7 +129,7 @@ function migrateV3(){
   S.projects=S.projects||[{id:id(),title:"Lock-In System",note:"10 Projects/Lock-In System.md",inPortfolio:false},{id:id(),title:"Life Management Game",note:"10 Projects/Life Management Game.md",inPortfolio:false}];
   S.courses=S.courses||[{id:id(),title:"IIT Guwahati Course (NLP)",note:"08 Courses & Certifications/IIT Guwahati Course/IIT Guwahati Course.md",done:false}];
   S.certs=S.certs||[];
-  S.job=S.job||{company:"Veil of Veda",note:"05 Outreach/Internships/Veil of Veda.md"};
+  S.job=S.job||{company:"Emergent AI",note:"05 Outreach/Internships/Veil of Veda.md"};
   S.visits=S.visits||{date:t,ids:[]};
   S.v3=true; save();
 }
@@ -146,7 +146,7 @@ const ROUTINE_RULES=[
  {id:"rr-nexora-assign",title:"Assign work",place:"nexora",tier:"small",repeat:"weekly",days:[0],note:"30 Clubs/Nexora/Nexora.md"},
  {id:"rr-call-parents",title:"Call Mom and Dad",place:"family",tier:"small",repeat:"weekly",days:[6],note:"12 Routines/Weekly and Monthly Rhythm.md"},
  {id:"rr-call-kritika",title:"Call Kritika",place:"family",tier:"small",repeat:"monthly",note:"12 Routines/Weekly and Monthly Rhythm.md"},
- {id:"rr-vov-saturday",title:"Veil of Veda office: 1 to 5 pm",place:"vov",tier:"medium",repeat:"weekly",days:[6],note:"20 Career/Internships/Veil of Veda.md"},
+ {id:"rr-vov-saturday",title:"Emergent AI office: 1 to 5 pm",place:"vov",tier:"medium",repeat:"weekly",days:[6],note:"20 Career/Internships/Veil of Veda.md"},
  {id:"rr-vov-reels",title:"VOV: build 3 aesthetic reels",place:"vov",tier:"big",repeat:"once",due:"2026-10-24",note:"20 Career/Internships/Veil of Veda.md",steps:[{t:"Reel 1",done:false},{t:"Reel 2",done:false},{t:"Reel 3",done:false}]}];
 ROUTINE_RULES.forEach(q=>{ if(!S.rules.some(r=>r.id===q.id)) S.rules.push({...q,start:today()}); });
 const DREAMS=["Mars","dyou","Seore","Moxie","Boba Bhai","Turbo AI","Mila Mend","ElevenLabs","Plum","un:fltrd","indē wild","Fix My Curls","Rella","Alchemai","Nami Matcha","Gnani.ai","Sarvam AI","Savana","Fraganote","The Whole Truth Foods","Kinder Joy","Sleepy Owl","New York tech companies"];
@@ -169,10 +169,14 @@ function tidyRules(){ const seen={}; let c=false;
   for(const r of S.rules){ if(r.id==="ix-q-20261020-lifeisle-names"&&!r.archived){ r.archived=true; c=true; }
     if(r.place==="internship"&&/veil of veda|vov/i.test((r.title||"")+" "+(r.note||""))){ r.place="vov"; c=true; }
     if(/^send the weekly update email to veil of veda$/i.test(r.title||"")&&!r.archived){ r.archived=true; c=true; }
+    // Veil of Veda became Emergent AI: retire the old weekly mail card (the Emergent AI one replaces it), rename the rest
+    if(/^veil of veda weekly update email$/i.test(r.title||"")&&!r.archived){ r.archived=true; c=true; }
+    if(r.title&&/Veil of Veda/.test(r.title)){ r.title=r.title.replace(/Veil of Veda/g,"Emergent AI"); c=true; }
     if(r.archived||r.auto||!r.title) continue;
     const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
     if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"]; if(rd&&!kd){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
     else seen[k]=r; }
+  if(S.job&&/Veil of Veda/.test(S.job.company||"")){ S.job.company="Emergent AI"; c=true; }
   if(c) save(); }
 tidyRules();
 if(S.job&&S.job.company!=="Veil of Veda"&&/Vale of Veda/.test(S.job.company)){ S.job.company="Veil of Veda"; S.job.note="05 Outreach/Internships/Veil of Veda.md"; }
@@ -349,7 +353,7 @@ const BOARDS={
   portfolio:()=>roomBoard("portfolio",`<div class="section-label"><span>Certifications</span><i></i><b>${S.certs.length}</b></div>${S.certs.map(c=>`<div class="card"><div class="grow"><div class="t">${esc(c.title)} <span class="tag ok">Certified</span></div><div class="m">${noteLink(c.note)}</div></div></div>`).join("")||'<div class="empty">Finish a course in Learning and it lands here.</div>'}
     <div class="section-label"><span>Projects in your portfolio</span><i></i><b>${S.projects.filter(p=>p.inPortfolio).length}</b></div>${S.projects.filter(p=>p.inPortfolio).map(p=>`<div class="card"><div class="grow"><div class="t">${esc(p.title)}</div><div class="m">${noteLink(p.note)}</div></div></div>`).join("")||'<div class="empty">Mark a project as "in portfolio" in the Projects building.</div>'}`),
   internship:()=>lobbyBoard("internship"),
-  vov:()=>`<div class="card today"><span class="ico">${ICONS.week}</span><div class="grow"><div class="t">Current: ${esc(S.job.company)} <span class="tag ok">Interning</span></div><div class="m">Office: Saturdays 1 to 5 pm. Weekly update email every Friday.${noteLink("20 Career/Internships/Veil of Veda.md","Veil of Veda note")}</div></div></div>
+  vov:()=>`<div class="card today"><span class="ico">${ICONS.week}</span><div class="grow"><div class="t">Current: ${esc(S.job.company)} <span class="tag ok">Interning</span></div><div class="m">Office: Saturdays 1 to 5 pm. Weekly update email every Friday.${noteLink("20 Career/Internships/Veil of Veda.md","Emergent AI note")}</div></div></div>
     ${roomBoard("vov")}`,
   internfuture:()=>`<p class="mhelp">Dream brands and companies. Tap to move each one along: applied, interview, offer.</p>${roomBoard("internfuture",`<div class="section-label"><span>Dream internships</span><i></i></div>${S.internships.map(x=>`<div class="card"><div class="grow"><div class="t">${esc(x.name)} <span class="tag">${INTERN_STEPS[x.status]}</span></div></div>${x.status<INTERN_STEPS.length-1?`<button class="sell" data-intern="${x.id}">Mark ${esc(INTERN_STEPS[x.status+1].toLowerCase())}</button>`:'<span class="tag ok">Offer 🎉</span>'}</div>`).join("")}`)}`,
   nexora:()=>roomBoard("nexora",`<div class="m" style="margin-top:6px">${noteLink("07 Nexora/Ideas for Nexora.md")}</div>`),
