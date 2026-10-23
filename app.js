@@ -172,6 +172,8 @@ function tidyRules(){ const seen={}; let c=false;
     // Veil of Veda became Emergent AI: retire the old weekly mail card (the Emergent AI one replaces it), rename the rest
     if(/^veil of veda weekly update email$/i.test(r.title||"")&&!r.archived){ r.archived=true; c=true; }
     if(r.title&&/Veil of Veda/.test(r.title)){ r.title=r.title.replace(/Veil of Veda/g,"Emergent AI"); c=true; }
+    // Venn moved these to Anytime (no deadline); clear the due date once
+    if(!r.dueCleared&&r.due&&/^(register for l.or.al brandstorm 2027|message tedxiim bangalore organisers)$/i.test(r.title||"")){ delete r.due; r.dueCleared=true; c=true; }
     if(r.archived||r.auto||!r.title) continue;
     const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
     if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"]; if(rd&&!kd){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
