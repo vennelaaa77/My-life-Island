@@ -175,7 +175,9 @@ function tidyRules(){ const seen={}; let c=false;
     // Venn moved these to Anytime (no deadline); clear the due date once
     if(!r.dueCleared&&r.due&&/^(register for l.or.al brandstorm 2027|message tedxiim bangalore organisers)$/i.test(r.title||"")){ delete r.due; r.dueCleared=true; c=true; }
     // Venn wants Text Jade in Anytime (no deadline); clear the due date once
-    if(!r.jadeNoDue&&/^text jade$/i.test(r.title||"")){ delete r.due; r.jadeNoDue=true; c=true; }
+    if(!r.jadeNoDue&&/^(text jade|reach out to irina ghosh(: .*)?)$/i.test(r.title||"")){ delete r.due; r.jadeNoDue=true; c=true; }
+    // Irina: one card only (the long-titled copy duplicates the plain one)
+    if(!r.archived&&/^reach out to irina ghosh: /i.test(r.title||"")&&S.rules.some(x=>x!==r&&!x.archived&&/^reach out to irina ghosh$/i.test(x.title||""))){ r.archived=true; c=true; }
     if(r.archived||r.auto||!r.title) continue;
     const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
     if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"];
