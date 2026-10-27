@@ -174,12 +174,24 @@ function tidyRules(){ const seen={}; let c=false;
     if(r.title&&/Veil of Veda/.test(r.title)){ r.title=r.title.replace(/Veil of Veda/g,"Emergent AI"); c=true; }
     // Venn moved these to Anytime (no deadline); clear the due date once
     if(!r.dueCleared&&r.due&&/^(register for l.or.al brandstorm 2027|message tedxiim bangalore organisers)$/i.test(r.title||"")){ delete r.due; r.dueCleared=true; c=true; }
+    // Venn wants Text Jade in Anytime (no deadline); clear the due date once
+    if(!r.jadeNoDue&&/^text jade$/i.test(r.title||"")){ delete r.due; r.jadeNoDue=true; c=true; }
     if(r.archived||r.auto||!r.title) continue;
     const k=r.title.toLowerCase().replace(/\s+/g," ").trim()+"|"+r.repeat;
-    if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"]; if(rd&&!kd){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
+    if(seen[k]){ const keep=seen[k], rd=!!S.done[r.id+"|once"], kd=!!S.done[keep.id+"|once"];
+      // keep the tagged copy (the one living in its own building) over the plain Today copy, unless only the other one is ticked
+      const swap=(rd&&!kd)||(!(kd&&!rd)&&r.place!=="today"&&keep.place==="today");
+      if(swap){ keep.archived=true; seen[k]=r; } else r.archived=true; c=true; }
     else seen[k]=r; }
   if(S.job&&/Veil of Veda/.test(S.job.company||"")){ S.job.company="Emergent AI"; c=true; }
   if(c) save(); }
+// once: where an old cleanup archived the tagged copy and kept the plain Today one, bring the tagged copy back
+function tidyV6(){ if(S.v6) return; S.v6=true; let c=false;
+  for(const r of S.rules){ if(r.archived||r.place!=="today"||r.repeat!=="once"||!r.title) continue;
+    const tw=S.rules.find(x=>x!==r&&x.archived&&x.place!=="today"&&String(x.id).startsWith("ix-")&&x.repeat==="once"&&(x.title||"").toLowerCase().trim()===r.title.toLowerCase().trim());
+    if(tw&&!S.done[tw.id+"|once"]){ const rd=S.done[r.id+"|once"]; tw.archived=false; r.archived=true; if(rd) S.done[tw.id+"|once"]=rd; c=true; } }
+  if(c) save(); }
+tidyV6();
 tidyRules();
 if(S.job&&S.job.company!=="Veil of Veda"&&/Vale of Veda/.test(S.job.company)){ S.job.company="Veil of Veda"; S.job.note="05 Outreach/Internships/Veil of Veda.md"; }
 S.rules.forEach(r=>{ if(r.title&&/Vale of Veda/.test(r.title)){ r.title=r.title.replace("Vale of Veda","Veil of Veda"); r.note="05 Outreach/Internships/Veil of Veda.md"; } }); save();
@@ -832,7 +844,11 @@ const SIZE={small:"small",medium:"medium",big:"big",s:"small",m:"medium",l:"big"
 const BLOCKED_DOCS=["q-20261020-lifeisle-names"];
 function importDoc(id,d){
   S.imported=S.imported||{}; if(BLOCKED_DOCS.includes(id)){ S.imported[id]=1; return false; } if(S.imported[id]||!d||!d.type) return false;
-  if(d.type==="quest"&&d.title&&S.rules.some(r=>!r.archived&&r.title&&r.title.toLowerCase().trim()===String(d.title).toLowerCase().trim())){ S.imported[id]=Date.now(); return false; }
+  if(d.type==="quest"&&d.title){ const tl=String(d.title).toLowerCase().trim(), ex=S.rules.filter(r=>!r.archived&&r.title&&r.title.toLowerCase().trim()===tl);
+    if(ex.length){ const inc=d.building&&PL(d.building)?d.building:"today";
+      // a tagged quest replaces a plain Today copy; anything else is a duplicate
+      if(inc!=="today"&&ex.every(r=>r.place==="today"&&!S.done[r.id+"|once"])) ex.forEach(r=>{ r.archived=true; });
+      else { S.imported[id]=Date.now(); return false; } } }
   const nid=()=>Math.random().toString(36).slice(2,9), place=d.building&&(PL(d.building)?d.building:null)||"today";
   switch(d.type){
     case "quest": S.rules.push({id:"ix-"+id,title:String(d.title||"Untitled quest").slice(0,120),place,tier:SIZE[d.size]||"medium",repeat:["daily","weekly","monthly"].includes(d.repeat)?d.repeat:"once",
